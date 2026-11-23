@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Friendship - Live Scene</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    background: #0b141a;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 12px; color: #111b21;
+  }
+
+  /* ---------- phone frame ---------- */
+  #phone {
+    width: min(94vw, 420px); height: min(84vh, 780px);
+    border-radius: 26px; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: #efeae2;
+    background-image: radial-gradient(rgba(0,0,0,.045) 1.2px, transparent 1.3px);
+    background-size: 22px 22px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  }
+  #header {
+    background: #008069; color: #fff; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2); z-index: 2;
+  }
+  #header .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff8fa3, #ffd6a5);
+    display: flex; align-items: center; justify-content: center;
+    color: #3a1d2b; font-weight: 700; font-size: 16px;
+  }
+  #header .name { font-weight: 600; font-size: 16px; }
+  #header .sub { font-size: 12px; opacity: .85; }
+
+  #log {
+    flex: 1; overflow-y: auto; padding: 14px 12px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    scrollbar-width: none; scroll-behavior: smooth;
+  }
+  #log::-webkit-scrollbar { display: none; }
+
+  #footer { background: #f0f2f5; padding: 8px 10px; display: flex; align-items: center; gap: 8px; z-index: 2; }
+  #footer .input { flex: 1; background: #fff; border-radius: 22px; padding: 10px 14px; font-size: 14px; color: #8696a0; }
+  #footer .mic { width: 42px; height: 42px; border-radius: 50%; background: #008069; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+  .chip { align-self: center; background: #fff; color: #54656f; font-size: 12px; padding: 5px 12px; border-radius: 8px; box-shadow: 0 1px 1px rgba(0,0,0,.1); margin: 4px 0 2px; }
+
+  /* ---------- chat bubbles ---------- */
+  .row { display: flex; animation: rowIn .45s cubic-bezier(.2,.9,.3,1.2) both; }
+  .row.me { justify-content: flex-end; }
+  .row.her { justify-content: flex-start; }
+  @keyframes rowIn { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
+  .bubble { max-width: 80%; padding: 7px 9px 4px 10px; border-radius: 9px; font-size: 14.5px; line-height: 1.38; box-shadow: 0 1px 1px rgba(0,0,0,.13); white-space: pre-wrap; word-wrap: break-word; }
+  .me .bubble { background: #d9fdd3; border-top-right-radius: 2px; }
+  .her .bubble { background: #fff; border-top-left-radius: 2px; }
+  .meta { float: right; margin: 6px 0 0 10px; font-size: 11px; color: #667781; display: flex; gap: 3px; align-items: center; }
+  .ticks { color: #53bdeb; font-style: normal; letter-spacing: -2px; font-size: 12px; }
+  .typing .bubble { padding: 11px 14px; }
+  .typing span { display: inline-block; width: 7px; height: 7px; margin: 0 2px; border-radius: 50%; background: #8696a0; animation: dot 1s infinite; }
+  .typing span:nth-child(2) { animation-delay: .15s; }
+  .typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes dot { 0%,80%,100% { transform: translateY(0); opacity: .35; } 40% { transform: translateY(-4px); opacity: 1; } }
+
+  /* ---------- highlight cards ---------- */
+  .card {
+    align-self: center; width: 94%;
+    background: #fff; border-radius: 18px; padding: 12px 12px 16px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.14), 0 0 0 2px #ffd6a5;
+    animation: pop .8s cubic-bezier(.34,1.56,.64,1) both;
+    margin: 8px 0;
+  }
+  @keyframes pop {
+    0% { opacity: 0; transform: scale(.55) translateY(24px); }
+    60% { opacity: 1; transform: scale(1.04) translateY(-4px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .card .tag { display: inline-block; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: #b0345c; background: #ffe3ea; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+  .card .art { margin: 10px 0 10px; border-radius: 14px; overflow: hidden; position: relative; }
+  .card .art > svg { width: 100%; height: auto; display: block; animation: kenBurns 16s ease-in-out infinite alternate; transform-origin: center; }
+  @keyframes kenBurns { from { transform: scale(1.02); } to { transform: scale(1.09) translateX(-1.5%); } }
+  .card h4 { font-size: 17px; margin-bottom: 6px; color: #111b21; }
+  .card p { font-size: 14px; line-height: 1.5; color: #3b4a54; opacity: 0; animation: fadeUp .6s .35s ease forwards; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- characters ---------- */
+  .fig { overflow: visible; }
+  .fig .shadow { opacity: .9; }
+  .fig .torso { transform-box: view-box; transform-origin: 50px 120px; animation: breathe 3.2s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.012); } }
+  .fig .head { transform-box: view-box; transform-origin: 50px 62px; animation: headIdle 6s ease-in-out infinite; }
+  @keyframes headIdle { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-1.5deg); } }
+  .fig .eye { transform-box: fill-box; transform-origin: center; animation: blink 4.6s infinite; }
+  @keyframes blink { 0%,93%,100% { transform: scaleY(1); } 95.5% { transform: scaleY(.1); } }
+  .fig .arm-r, .fig .arm-l { transform-box: view-box; animation: armIdle 3.8s ease-in-out infinite; }
+  .fig .arm-l { animation-delay: .6s; }
+  @keyframes armIdle { 0%,100% { transform: rotate(0); } 50% { transform: rotate(3deg); } }
+  .fig .hand { opacity: 0; }
+  .fig .mouth-s { opacity: 0; transition: opacity .3s; }
+  .fig.smile .mouth-s { opacity: 1; }
+  .fig.smile .mouth-n { opacity: 0; }
+
+  /* walking */
+  .fig.walk .leg-l { transform-box: view-box; animation: legL .75s ease-in-out infinite alternate; }
+  .fig.walk .leg-r { transform-box: view-box; animation: legR .75s ease-in-out infinite alternate; }
+  .fig.walk .arm-l { animation: swingL .75s ease-in-out infinite alternate; }
+  .fig.walk .arm-r { animation: swingR .75s ease-in-out infinite alternate; }
+  @keyframes legL { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+  @keyframes legR { from { transform: rotate(14deg); } to { transform: rotate(-14deg); } }
+  @keyframes swingL { from { transform: rotate(10deg); } to { transform: rotate(-10deg); } }
+  @keyframes swingR { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+
+  /* gestures */
+  .fig.talk .arm-r { animation: talk .9s ease-in-out infinite alternate; }
+  @keyframes talk { from { transform: rotate(0); } to { transform: rotate(-38deg); } }
+  .fig.look-r .head { animation: lookR .9s cubic-bezier(.3,.8,.3,1) .4s both; }
+  .fig.look-l .head { animation: lookL .9s cubic-bezier(.3,.8,.3,1) .4s both; }
+  @keyframes lookR { to { transform: rotate(11deg); } }
+  @keyframes lookL { to { transform: rotate(-11deg); } }
+  .fig.hide .hand { animation: hideFace .6s 2s ease both; }
+  @keyframes hideFace { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+  .fig.shake .head { animation: shake .5s 1s 3; }
+  @keyframes shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+  .fig.enter { animation: enter 1s .1s cubic-bezier(.2,.8,.3,1) both; }
+  @keyframes enter { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* ---------- scene motion ---------- */
+  .sway { animation: sway 3s ease-in-out infinite; }
+  @keyframes sway { 0%,100% { transform: translateY(0); } 50% { transform: translateY(1.5px); } }
+  .scroll { animation: scroll 2.2s linear infinite; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-160px); } }
+  .road { animation: roadDash 0.6s linear infinite; }
+  @keyframes roadDash { from { transform: translateX(0); } to { transform: translateX(-26px); } }
+  .beam { animation: beam 5s ease-in-out infinite; }
+  @keyframes beam { 0%,100% { opacity: .15; } 50% { opacity: .42; } }
+  .glow { animation: glow 2.6s ease-in-out infinite; }
+  @keyframes glow { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+  .screen { animation: screenFlick 2.2s ease-in-out infinite; }
+  @keyframes screenFlick { 0%,100% { opacity: .8; } 45% { opacity: 1; } 60% { opacity: .85; } }
+  .dust { animation: dust 7s linear infinite; }
+  @keyframes dust { 0% { transform: translate(0,0); opacity: 0; } 15% { opacity: .8; } 100% { transform: translate(14px,-60px); opacity: 0; } }
+  .bond-l { animation: splitL 1.4s 1.6s cubic-bezier(.3,.8,.3,1) both; }
+  .bond-r { animation: splitR 1.4s 1.6s cubic-bezier(.3,.8,.3,1) both; }
+  @keyframes splitL { to { transform: translate(-22px, 6px) rotate(-8deg); } }
+  @keyframes splitR { to { transform: translate(22px, 6px) rotate(8deg); } }
+  .cloud { animation: cloud 18s linear infinite; }
+  @keyframes cloud { from { transform: translateX(-60px); } to { transform: translateX(380px); } }
+  .sun { animation: sunPulse 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes sunPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+  .hearts { position: relative; height: 0; }
+  .hearts span { position: absolute; bottom: 10px; font-size: 18px; opacity: 0; animation: floatUp 3.6s linear infinite; }
+  @keyframes floatUp { 0% { transform: translateY(0) scale(.7); opacity: 0; } 15% { opacity: .95; } 100% { transform: translateY(-160px) scale(1.1); opacity: 0; } }
+
+  /* ---------- controls ---------- */
+  #controls { display: flex; gap: 10px; align-items: center; }
+  #controls button { background: #1f2c34; color: #e9edef; border: 1px solid #2a3942; border-radius: 999px; padding: 8px 16px; cursor: pointer; font-size: 14px; }
+  #controls button:hover { background: #2a3942; }
+  #bar { width: min(94vw, 420px); height: 4px; background: #1f2c34; border-radius: 4px; overflow: hidden; }
+  #bar i { display: block; height: 100%; width: 0; background: #00a884; transition: width .5s ease; }
+</style>
+</head>
+<body>
+
+<div id="phone">
+  <div id="header">
+    <div class="avatar">H</div>
+    <div>
+      <div class="name">Her</div>
+      <div class="sub" id="status">online</div>
+    </div>
+  </div>
+  <div id="log"></div>
+  <div id="footer">
+    <div class="input">Type a message</div>
+    <div class="mic">&#10148;</div>
+  </div>
+</div>
+
+<div id="bar"><i id="barfill"></i></div>
+<div id="controls">
+  <button id="restart">&#8635; Restart</button>
+  <button id="toggle">Pause</button>
+</div>
+
+<script>
+/* ================= characters ================= */
+const ROLES = {
+  me:      { skin:"#f1c7a5", hair:"#2b2118", shirt:"#3f7bd6", pants:"#2d3550", long:false },
+  her:     { skin:"#f3c9a8", hair:"#1f1a2e", shirt:"#d6588f", pants:"#3b3050", long:true  },
+  oldher:  { skin:"#f3c9a8", hair:"#3a2620", shirt:"#e0a040", pants:"#3b3050", long:true  },
+  rithvik: { skin:"#d9a77a", hair:"#201a14", shirt:"#3fae7a", pants:"#30405a", long:false },
+  anj:     { skin:"#e8b894", hair:"#3a2620", shirt:"#f2b544", pants:"#554a6e", long:true  }
+};
+
+/* A full figure (limbs, head, face) placed at x,y inside a parent svg.
+   Feet sit at y=175 of its own 100x180 box. */
+function fig(role, x, y, w, h, cls = "") {
+  const c = ROLES[role];
+  const backHair = c.long
+    ? `<path d="M29 40 Q28 14 50 13 Q72 14 71 40 L74 106 Q50 114 26 106 Z" fill="${c.hair}"/>` : "";
+  return `<svg class="fig ${cls}" x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 100 180" overflow="visible">
+    <ellipse class="shadow" cx="50" cy="176" rx="24" ry="4" fill="rgba(0,0,0,.28)"/>
+    ${backHair}
+    <g class="legs">
+      <g class="leg-l" style="transform-origin:42px 122px"><path d="M42 122 L40 170" stroke="${c.pants}" stroke-width="11" stroke-linecap="round"/><ellipse cx="38" cy="172" rx="7" ry="3.6" fill="#1e1e28"/></g>
+      <g class="leg-r" style="transform-origin:58px 122px"><path d="M58 122 L60 170" stroke="${c.pants}" stroke-width="11" stroke-linecap="round"/><ellipse cx="62" cy="172" rx="7" ry="3.6" fill="#1e1e28"/></g>
+    </g>
+    <g class="torso"><path d="M31 68 Q50 60 69 68 L71 124 Q50 128 29 124 Z" fill="${c.shirt}"/></g>
+    <g class="arm-l" style="transform-origin:34px 74px"><path d="M34 74 L27 112" stroke="${c.shirt}" stroke-width="10" stroke-linecap="round"/><circle cx="27" cy="116" r="5" fill="${c.skin}"/></g>
+    <g class="arm-r" style="transform-origin:66px 74px"><path d="M66 74 L73 112" stroke="${c.shirt}" stroke-width="10" stroke-linecap="round"/><circle cx="73" cy="116" r="5" fill="${c.skin}"/></g>
+    <g class="head" style="transform-origin:50px 62px">
+      <rect x="45" y="54" width="10" height="12" rx="3" fill="${c.skin}"/>
+      <ellipse cx="50" cy="40" rx="19" ry="21" fill="${c.skin}"/>
+      <path d="M30 38 Q30 16 50 15 Q70 16 70 38 Q62 26 50 27 Q38 26 30 38 Z" fill="${c.hair}"/>
+      <g class="eyes">
+        <ellipse class="eye" cx="43" cy="42" rx="2.2" ry="2.6" fill="#222"/>
+        <ellipse class="eye" cx="57" cy="42" rx="2.2" ry="2.6" fill="#222"/>
+      </g>
+      <circle cx="39" cy="50" r="3" fill="#f08a8a" opacity=".35"/>
+      <circle cx="61" cy="50" r="3" fill="#f08a8a" opacity=".35"/>
+      <path class="mouth-n" d="M45 52 Q50 54 55 52" stroke="#7a3b3b" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path class="mouth-s" d="M43 50 Q50 60 57 50" stroke="#7a3b3b" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse class="hand" cx="50" cy="42" rx="22" ry="21" fill="${c.skin}"/>
+    </g>
+  </svg>`;
+}
+
+/* place a figure on the art's ground line (art is 320x180, ground at y=150) */
+const F = (role, x, cls = "", h = 130) => fig(role, x, 150 - (175 * h / 180), h * 100 / 180, h, cls);
+
+/* ================= illustrations (320 x 180) ================= */
+const ART = {
+  class: () => `
+    <svg viewBox="0 0 320 180">
+      <defs>
+        <linearGradient id="wallC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f1e6"/><stop offset="1" stop-color="#e5dccb"/></linearGradient>
+        <linearGradient id="floorC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d4ad84"/><stop offset="1" stop-color="#b98c5f"/></linearGradient>
+        <linearGradient id="winC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfe9ff"/></linearGradient>
+      </defs>
+      <rect width="320" height="180" fill="url(#wallC)"/>
+      <rect x="6" y="18" width="62" height="92" rx="4" fill="url(#winC)" stroke="#9aa6b2" stroke-width="4"/>
+      <polygon points="6,18 68,18 120,150 40,150" fill="#fff8d0" class="beam"/>
+      <rect x="0" y="150" width="320" height="30" fill="url(#floorC)"/>
+      <rect x="92" y="14" width="208" height="72" rx="6" fill="#2f5d4a" stroke="#8a5a32" stroke-width="7"/>
+      <text x="196" y="58" text-anchor="middle" font-size="22" fill="#e8f5ee" font-family="Segoe UI,sans-serif">Math class</text>
+      <rect x="40" y="112" width="120" height="8" rx="3" fill="#8f6236"/>
+      <rect x="184" y="112" width="120" height="8" rx="3" fill="#8f6236"/>
+      <rect x="54" y="120" width="8" height="30" fill="#6e4a28"/><rect x="150" y="120" width="8" height="30" fill="#6e4a28"/>
+      <rect x="198" y="120" width="8" height="30" fill="#6e4a28"/><rect x="294" y="120" width="8" height="30" fill="#6e4a28"/>
+      <rect x="62" y="104" width="22" height="7" fill="#3f7bd6"/>
+      <rect x="208" y="104" width="22" height="7" fill="#d6588f"/>
+      ${[0,1,2].map(i => `<circle class="dust" cx="${70+i*70}" cy="${120+i*6}" r="1.6" fill="#fff" style="animation-delay:${i*2}s"/>`).join("")}
+      ${F("me", 56, "look-r hide")}
+      ${F("her", 222, "look-l")}
+    </svg>`,
+
+  bus: () => `
+    <svg viewBox="0 0 320 180">
+      <defs>
+        <linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb08a"/><stop offset=".55" stop-color="#8a7ac0"/><stop offset="1" stop-color="#3a3f6e"/></linearGradient>
+      </defs>
+      <rect width="320" height="180" fill="url(#skyB)"/>
+      <g class="scroll">
+        <rect x="0" y="92" width="110" height="40" fill="#2b2a4a"/><rect x="120" y="82" width="70" height="50" fill="#2b2a4a"/>
+        <rect x="200" y="96" width="90" height="36" fill="#2b2a4a"/><rect x="300" y="86" width="80" height="46" fill="#2b2a4a"/>
+        <rect x="380" y="92" width="110" height="40" fill="#2b2a4a"/><rect x="500" y="82" width="70" height="50" fill="#2b2a4a"/>
+      </g>
+      <rect x="0" y="122" width="320" height="58" fill="#2b313c"/>
+      <g class="sway">
+        <rect x="6" y="14" width="98" height="78" rx="6" fill="#7db8e8" stroke="#1d232c" stroke-width="6"/>
+        <rect x="112" y="14" width="98" height="78" rx="6" fill="#7db8e8" stroke="#1d232c" stroke-width="6"/>
+        <rect x="218" y="14" width="98" height="78" rx="6" fill="#7db8e8" stroke="#1d232c" stroke-width="6"/>
+        <rect x="18" y="104" width="122" height="22" rx="7" fill="#b8412f"/>
+        <rect x="180" y="104" width="122" height="22" rx="7" fill="#b8412f"/>
+        ${F("me", 58, "walk")}
+        ${F("her", 224, "talk")}
+      </g>
+      <rect x="0" y="168" width="320" height="12" fill="#1d232c"/>
+      <g class="road"><rect x="-40" y="176" width="400" height="2" fill="#f3d36b" stroke-dasharray="14 12"/></g>
+    </svg>`,
+
+  sofa: () => `
+    <svg viewBox="0 0 320 180">
+      <defs>
+        <radialGradient id="lampG"><stop offset="0" stop-color="#ffe0a0"/><stop offset="1" stop-color="#ffe0a0" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="320" height="180" fill="#2c1f45"/>
+      <rect x="0" y="150" width="320" height="30" fill="#3d2a5a"/>
+      <circle cx="46" cy="60" r="70" fill="url(#lampG)" class="glow"/>
+      <rect x="40" y="52" width="12" height="98" rx="5" fill="#d9b08c"/>
+      <rect x="22" y="36" width="48" height="22" rx="8" fill="#ffd98a"/>
+      <rect x="232" y="22" width="66" height="60" rx="6" fill="#1d1633" stroke="#8d7cbf" stroke-width="4"/>
+      <circle cx="262" cy="46" r="12" fill="#fff4cc" class="glow"/>
+      <ellipse cx="170" cy="162" rx="120" ry="10" fill="#6a3e6e" opacity=".5"/>
+      <rect x="150" y="108" width="160" height="42" rx="14" fill="#6c3b55"/>
+      <rect x="140" y="92" width="180" height="22" rx="10" fill="#54293f"/>
+      <rect x="168" y="112" width="48" height="24" rx="8" fill="#8a4f6f"/>
+      <rect x="240" y="112" width="48" height="24" rx="8" fill="#8a4f6f"/>
+      ${F("me", 70, "smile")}
+      <rect x="92" y="80" width="14" height="24" rx="3" fill="#9fd3ff" class="screen"/>
+    </svg>`,
+
+  school: () => `
+    <svg viewBox="0 0 320 180">
+      <defs>
+        <linearGradient id="hallH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7ecd3"/><stop offset="1" stop-color="#e7d7b5"/></linearGradient>
+      </defs>
+      <rect width="320" height="180" fill="url(#hallH)"/>
+      ${[0,1,2,3,4,5,6].map(i => `<rect x="${i*46}" y="10" width="42" height="92" rx="3" fill="#4f7aa6" stroke="#2e4a68" stroke-width="2"/><rect x="${i*46+18}" y="50" width="6" height="6" fill="#d8e3ef"/>`).join("")}
+      <polygon points="30,0 80,0 150,150 60,150" fill="#fff6d6" class="beam"/>
+      <polygon points="200,0 240,0 290,150 220,150" fill="#fff6d6" class="beam" style="animation-delay:2s"/>
+      <rect x="0" y="108" width="320" height="72" fill="#c9a77d"/>
+      <rect x="0" y="108" width="320" height="6" fill="#a9865c"/>
+      <line x1="0" y1="150" x2="320" y2="150" stroke="#9c7b52" stroke-width="2"/>
+      ${[0,1].map(i => `<circle class="dust" cx="${100+i*90}" cy="${70+i*10}" r="1.6" fill="#fff" style="animation-delay:${i*3}s"/>`).join("")}
+      ${F("me", 60, "look-r")}
+      ${F("oldher", 212, "shake")}
+      <line x1="120" y1="100" x2="196" y2="100" stroke="#ff8fa3" stroke-width="5" stroke-linecap="round" class="bond-l" style="transform-box:fill-box"/>
+      <line x1="120" y1="100" x2="196" y2="100" stroke="#ffd6a5" stroke-width="5" stroke-linecap="round" class="bond-r" style="transform-box:fill-box;opacity:0"/>
+    </svg>`,
+
+  anj: () => `
+    <svg viewBox="0 0 320 180">
+      <defs>
+        <radialGradient id="spotA" cx=".5" cy=".3" r=".6"><stop offset="0" stop-color="#ffd6a5" stop-opacity=".5"/><stop offset="1" stop-color="#ffd6a5" stop-opacity="0"/></radialGradient>
+        <linearGradient id="roomA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3775"/><stop offset="1" stop-color="#1d1633"/></linearGradient>
+      </defs>
+      <rect width="320" height="180" fill="url(#roomA)"/>
+      <ellipse cx="160" cy="70" rx="160" ry="110" fill="url(#spotA)" class="glow"/>
+      <rect x="0" y="150" width="320" height="30" fill="#17122a"/>
+      ${[0,1,2,3].map(i => `<circle cx="${40+i*80}" cy="${30+(i%2)*20}" r="2" fill="#ffe7b8" class="glow" style="animation-delay:${i*0.6}s"/>`).join("")}
+      ${F("me", 88)}
+      ${F("anj", 196, "look-l talk")}
+    </svg>`,
+
+  sunset: () => `
+    <svg viewBox="0 0 320 180">
+      <defs>
+        <linearGradient id="sunS" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ff9a76"/><stop offset=".5" stop-color="#d8688a"/><stop offset="1" stop-color="#4b3a7a"/>
+        </linearGradient>
+        <radialGradient id="sunGlow"><stop offset="0" stop-color="#ffd6a5"/><stop offset="1" stop-color="#ffd6a5" stop-opacity="0"/></radialGradient>
+        <linearGradient id="grassS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d5f4e"/><stop offset="1" stop-color="#22382f"/></linearGradient>
+      </defs>
+      <rect width="320" height="180" fill="url(#sunS)"/>
+      <circle cx="160" cy="92" r="70" fill="url(#sunGlow)" class="glow"/>
+      <circle cx="160" cy="92" r="28" fill="#ffd6a5" class="sun"/>
+      <ellipse class="cloud" cx="40" cy="40" rx="40" ry="8" fill="#fff" opacity=".35"/>
+      <ellipse class="cloud" cx="-60" cy="62" rx="50" ry="7" fill="#fff" opacity=".25" style="animation-delay:-6s"/>
+      <rect x="0" y="136" width="320" height="44" fill="url(#grassS)"/>
+      <ellipse cx="120" cy="170" rx="34" ry="5" fill="rgba(0,0,0,.25)"/>
+      <ellipse cx="200" cy="170" rx="34" ry="5" fill="rgba(0,0,0,.25)"/>
+      ${F("me", 100, "smile")}
+      ${F("her", 178, "smile")}
+    </svg>`
+};
+
+/* ================= story steps ================= */
+const STEPS = [
+  { k:"card", tag:"Math class", art:"class", title:"Class", text:"I keep looking at her in class. When she looks back, I quickly hide my face.", wait:5200 },
+  { k:"card", tag:"The next day, on the bus", art:"bus", title:"On the bus", text:"I ask her if she asked Rithvik anything. She says no, then: \"Finally, you got the courage to ask me a question!\" I feel very happy.", wait:5600 },
+  { k:"card", tag:"That evening", art:"sofa", title:"On the sofa", text:"After school, I sit on the sofa and message her first.", wait:3800 },
+
+  { k:"msg", from:"me", text:"I just wanted to tell you one honest thing so I don't feel guilty anymore." },
+  { k:"msg", from:"me", text:"Remember when you asked me if I liked you and I said no?" },
+  { k:"msg", from:"her", text:"i knew it 😅" },
+  { k:"msg", from:"me", text:"Actually, I got scared back then and lied because I didn't want to lose our friendship." },
+  { k:"msg", from:"me", text:"I have felt this from last year itself." },
+  { k:"msg", from:"me", text:"I do still have feelings for you, and I just wanted to tell you the truth to clear my mind." },
+  { k:"msg", from:"her", text:"aww 🥺" },
+  { k:"msg", from:"me", text:"Please don't take any serious actions. I just want our friendship to stay normal like before." },
+  { k:"msg", from:"me", text:"I still don't clearly know the reason. Maybe it's rumours or just pressure." },
+  { k:"msg", from:"me", text:"Anyways, I feel kinda relaxed that you know about this." },
+  { k:"msg", from:"her", text:"aww, that was so nice of you to tell me." },
+  { k:"msg", from:"her", text:"i knew it, you were being so obvious lol 😂" },
+  { k:"msg", from:"her", text:"I won't cut our friendship." },
+  { k:"msg", from:"her", text:"aww, you're a good friend too 💛" },
+  { k:"msg", from:"me", text:"Thanks for understanding me." },
+  { k:"msg", from:"me", text:"I thought you would, for once, see it and forever cut our friendship... but NO! You didn't, because you are unique!!" },
+  { k:"msg", from:"me", text:"Than any other friend of mine." },
+  { k:"msg", from:"me", text:"In my old school too, I liked a girl so much, but she never did. I wanted to tell her what I told you now, but when I told her, she was shocked and our friendship ended right there." },
+  { k:"msg", from:"me", text:"I still miss that friendship. It was very large! We spent whole days talking about life, school and friendship, but my fate decided otherwise and I lost such a good friend." },
+  { k:"msg", from:"me", text:"I thought the same was going to happen with you too, but you are a much better, understanding friend than I didn't realise till now." },
+  { k:"msg", from:"me", text:"Anjushree is also a good friend, but she is the one who liked me rather than me liking her, so it's not a close friendship for me with her." },
+  { k:"msg", from:"me", text:"Even if a very kind and loving girl becomes my close friend, it will either be YOU OR NO ONE ELSE!!!!!!" },
+  { k:"msg", from:"me", text:"Thanks for being such a good friend for me. 🥲" },
+
+  { k:"card", tag:"Flashback", art:"school", title:"My old school", text:"A girl I liked never liked me back. When I told her, she was shocked, and our friendship ended right there.", wait:5400 },
+  { k:"card", tag:"Anjushree", art:"anj", title:"Anjushree", text:"She liked me, not the other way round, so we are friends, but not that close.", wait:4400 },
+  { k:"card", tag:"Final outcome", art:"sunset", title:"We stayed friends", text:"She said it was so nice that I told her, and she won't cut our friendship. Our friendship stays normal, like before.", final:true, wait:0 }
+];
+
+/* ================= engine ================= */
+const log = document.getElementById("log");
+const barfill = document.getElementById("barfill");
+const toggleBtn = document.getElementById("toggle");
+const statusEl = document.getElementById("status");
+
+let i = 0, playing = true, timer = null, paused = false;
+
+function nowTime() {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+function scrollEnd() { log.scrollTop = log.scrollHeight; }
+function escapeHTML(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+function addCard(s) {
+  const card = document.createElement("div");
+  card.className = "card";
+  let hearts = "";
+  if (s.art === "sunset") {
+    hearts = `<div class="hearts">
+      <span style="left:12%;animation-delay:0s">&#10084;</span>
+      <span style="left:40%;animation-delay:1.2s">&#10084;</span>
+      <span style="left:68%;animation-delay:2.4s">&#10084;</span>
+      <span style="left:88%;animation-delay:.6s">&#10084;</span></div>`;
+  }
+  card.innerHTML = `
+    <div class="tag">${s.tag}</div>
+    <div class="art">${ART[s.art]()}</div>
+    <h4>${s.title}</h4>
+    <p>${s.text}</p>${hearts}`;
+  log.appendChild(card);
+  scrollEnd();
+}
+
+function addMsg(s) {
+  const row = document.createElement("div");
+  row.className = `row ${s.from}`;
+  row.innerHTML = `<div class="bubble typing"><span></span><span></span><span></span></div>`;
+  log.appendChild(row);
+  scrollEnd();
+  setTimeout(() => {
+    const ticks = s.from === "me" ? `<i class="ticks">&#10003;&#10003;</i>` : "";
+    row.innerHTML = `<div class="bubble">${escapeHTML(s.text)}<span class="meta">${nowTime()} ${ticks}</span></div>`;
+    scrollEnd();
+  }, 850);
+}
+
+function next() {
+  clearTimeout(timer);
+  if (!playing) { paused = true; return; }
+  if (i >= STEPS.length) {
+    statusEl.textContent = "online";
+    toggleBtn.textContent = "Replay";
+    playing = false;
+    return;
+  }
+  const s = STEPS[i++];
+  if (s.k === "card") addCard(s); else addMsg(s);
+  barfill.style.width = `${(i / STEPS.length) * 100}%`;
+  statusEl.textContent = (s.k === "msg" && s.from === "her") ? "typing…" : "online";
+  const wait = s.k === "msg" ? 1500 : (s.wait || 900);
+  timer = setTimeout(next, wait);
+}
+
+toggleBtn.addEventListener("click", () => {
+  if (i >= STEPS.length) { restart(); return; }
+  playing = !playing;
+  toggleBtn.textContent = playing ? "Pause" : "Play";
+  if (playing && paused) { paused = false; next(); }
+  if (!playing) clearTimeout(timer);
+});
+
+function restart() {
+  clearTimeout(timer);
+  log.innerHTML = "";
+  i = 0; playing = true; paused = false;
+  barfill.style.width = "0%";
+  toggleBtn.textContent = "Pause";
+  const chip = document.createElement("div");
+  chip.className = "chip"; chip.textContent = "Today";
+  log.appendChild(chip);
+  next();
+}
+
+document.getElementById("restart").addEventListener("click", restart);
+document.addEventListener("keydown", e => { if (e.key === " ") { e.preventDefault(); toggleBtn.click(); } });
+
+restart();
+</script>
+</body>
+</html>
